@@ -28,6 +28,7 @@ from typing import Callable, Dict, Iterable, List, NamedTuple, Optional, Set, Un
 from tabulate import tabulate_formats
 
 from airflow import settings
+from airflow.cli.commands.legacy_commands import check_legacy_command
 from airflow.configuration import conf
 from airflow.exceptions import AirflowException
 from airflow.executors.executor_loader import ExecutorLoader
@@ -65,6 +66,8 @@ class DefaultHelpParser(argparse.ArgumentParser):
         if value == 'celery' and executor != ExecutorLoader.CELERY_EXECUTOR:
             message = f'celery subcommand works only with CeleryExecutor, your current executor: {executor}'
             raise ArgumentError(action, message)
+        if action.choices is not None and value not in action.choices:
+            check_legacy_command(action, value)
 
         super()._check_value(action, value)
 
@@ -730,6 +733,17 @@ ARG_FILE_IO = Arg(
     action='store_true'
 )
 
+# config
+ARG_SECTION = Arg(
+    ("section",),
+    help="The section name",
+)
+ARG_OPTION = Arg(
+    ("option",),
+    help="The option name",
+)
+
+
 ALTERNATIVE_CONN_SPECS_ARGS = [
     ARG_CONN_TYPE, ARG_CONN_HOST, ARG_CONN_LOGIN, ARG_CONN_PASSWORD, ARG_CONN_SCHEMA, ARG_CONN_PORT
 ]
@@ -1184,6 +1198,21 @@ CELERY_COMMANDS = (
     )
 )
 
+CONFIG_COMMANDS = (
+    ActionCommand(
+        name='get-value',
+        help='Print the value of the configuration',
+        func=lazy_load_command('airflow.cli.commands.config_command.get_value'),
+        args=(ARG_SECTION, ARG_OPTION, ),
+    ),
+    ActionCommand(
+        name='list',
+        help='List options for the configuration.',
+        func=lazy_load_command('airflow.cli.commands.config_command.show_config'),
+        args=(ARG_COLOR, ),
+    ),
+)
+
 airflow_commands: List[CLICommand] = [
     GroupCommand(
         name='dags',
@@ -1273,11 +1302,10 @@ airflow_commands: List[CLICommand] = [
         ),
         args=(),
     ),
-    ActionCommand(
-        name='config',
-        help='Show current application configuration',
-        func=lazy_load_command('airflow.cli.commands.config_command.show_config'),
-        args=(ARG_COLOR, ),
+    GroupCommand(
+        name="config",
+        help='View the configuration options.',
+        subcommands=CONFIG_COMMANDS
     ),
     ActionCommand(
         name='info',
@@ -1323,13 +1351,13 @@ class AirflowHelpFormatter(argparse.HelpFormatter):
 
             self._indent()
             subactions = action._get_subactions()  # pylint: disable=protected-access
-            action_subcommnads, group_subcommnands = partition(
+            action_subcommands, group_subcommands = partition(
                 lambda d: isinstance(ALL_COMMANDS_DICT[d.dest], GroupCommand), subactions
             )
             parts.append("\n")
             parts.append('%*s%s:\n' % (self._current_indent, '', "Groups"))
             self._indent()
-            for subaction in group_subcommnands:
+            for subaction in group_subcommands:
                 parts.append(self._format_action(subaction))
             self._dedent()
 
@@ -1337,7 +1365,7 @@ class AirflowHelpFormatter(argparse.HelpFormatter):
             parts.append('%*s%s:\n' % (self._current_indent, '', "Commands"))
             self._indent()
 
-            for subaction in action_subcommnads:
+            for subaction in action_subcommands:
                 parts.append(self._format_action(subaction))
             self._dedent()
             self._dedent()

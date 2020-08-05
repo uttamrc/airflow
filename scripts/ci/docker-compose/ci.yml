@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -15,10 +14,15 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-set -euo pipefail
-echo "Getting workflow id for ${WORKFLOW}. Github Repo: ${GITHUB_REPOSITORY}"
-URL="https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/${WORKFLOW}.yml"
-echo "Calling URL: ${URL}"
-WORKFLOW_ID=$(curl "Authorization: token ${GITHUB_TOKEN}" "${URL}" | jq '.id')
-echo "Workflow id for ${WORKFLOW}: ${WORKFLOW_ID}"
-echo "::set-env name=WORKFLOW_ID::${WORKFLOW_ID}"
+---
+version: "2.2"
+services:
+  airflow:
+    environment:
+      - GITHUB_HEAD_REF
+      - GITHUB_REF
+      - GITHUB_ACTIONS
+      - GITHUB_SHA
+      - GITHUB_REPOSITORY
+      - GITHUB_RUN_ID
+      - GITHUB_TOKEN

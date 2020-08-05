@@ -107,7 +107,7 @@ class AWSDataSyncOperator(BaseOperator):
 
     @apply_defaults
     def __init__(
-        self,
+        self, *,
         aws_conn_id="aws_default",
         wait_interval_seconds=5,
         task_arn=None,
@@ -121,10 +121,9 @@ class AWSDataSyncOperator(BaseOperator):
         update_task_kwargs=None,
         task_execution_kwargs=None,
         delete_task_after_execution=False,
-        *args,
         **kwargs
     ):
-        super().__init__(*args, **kwargs)
+        super().__init__(**kwargs)
 
         # Assignments
         self.aws_conn_id = aws_conn_id
