@@ -21,8 +21,8 @@ from os.path import dirname
 from textwrap import wrap
 from typing import List
 
-AIRFLOW_SOURCES_DIR = os.path.join(dirname(__file__), os.pardir, os.pardir, os.pardir)
-
+AIRFLOW_SOURCES_DIR = os.path.abspath(os.path.join(dirname(__file__), os.pardir, os.pardir, os.pardir))
+print(AIRFLOW_SOURCES_DIR)
 sys.path.insert(0, AIRFLOW_SOURCES_DIR)
 # flake8: noqa: F401
 # pylint: disable=wrong-import-position

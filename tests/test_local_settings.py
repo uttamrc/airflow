@@ -169,4 +169,3 @@ class TestLocalSettings(unittest.TestCase):
             task_instance.owner = 'airflow'
             with self.assertRaises(AirflowClusterPolicyViolation):
                 settings.task_must_have_owners(task_instance)  # pylint: disable=no-member
-

@@ -63,7 +63,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: "Check if tests should be run"
-        run: "./scripts/ci/tools/ci_check_if_tests_should_be_run.sh"
+        run: "./scripts/ci/tools/ci_check_if_heavy_airflow_pre_commits_should_be_run.sh"
         id: trigger-tests
 
   tests-quarantined:
